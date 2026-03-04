@@ -56,13 +56,9 @@ function buildToolInstructions(tools: AnthropicTool[], hasCommunicationTool: boo
     if (!tools || tools.length === 0) return '';
 
     const toolList = tools.map((tool) => {
-        const params = tool.input_schema?.properties
-            ? Object.entries(tool.input_schema.properties as Record<string, { type?: string; description?: string }>)
-                .map(([k, v]) => `${k}: ${v.type || 'string'}`)
-                .join(', ')
-            : '';
-        return `- ${tool.name}(${params})`;
-    }).join('\n');
+        const schema = tool.input_schema ? JSON.stringify(tool.input_schema) : '{}';
+        return `### ${tool.name}\nDescription: ${tool.description || 'No description'}\nInput Schema: ${schema}`;
+    }).join('\n\n');
 
     const rules = hasCommunicationTool
         ? `CRITICAL RULES:
