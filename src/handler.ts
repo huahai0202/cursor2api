@@ -447,15 +447,21 @@ export async function handleMessages(req: Request, res: Response): Promise<void>
         // ★ 区分客户端 thinking 模式：
         // - enabled: GUI 插件，支持渲染 thinking content block
         // - adaptive: Claude Code，需要密码学 signature 验证，无法伪造 → 保留标签在正文中
+        const thinkingConfig = getConfig().thinking;
+        // ★ config.yaml thinking 开关优先级最高
+        if (thinkingConfig && !thinkingConfig.enabled) {
+            // 配置强制关闭 thinking → 移除 thinking 参数
+            delete body.thinking;
+        }
         const clientRequestedThinking = body.thinking?.type === 'enabled';
-        // ★ Thinking 默认启用：Claude Code 等客户端可能不传 thinking 参数，proxy 层自动补上
-        if (!body.thinking) {
+        // ★ Thinking 默认启用：当配置未禁用时，Claude Code 等客户端可能不传 thinking 参数，proxy 层自动补上
+        if (!body.thinking && (!thinkingConfig || thinkingConfig.enabled)) {
             body.thinking = { type: 'enabled' };
         }
         const cursorReq = await convertToCursorRequest(body);
         log.endPhase();
         log.recordCursorRequest(cursorReq);
-        log.debug('Handler', 'convert', `转换完成: ${cursorReq.messages.length} messages, model=${cursorReq.model}, clientThinking=${clientRequestedThinking}, thinkingType=${body.thinking?.type}`);
+        log.debug('Handler', 'convert', `转换完成: ${cursorReq.messages.length} messages, model=${cursorReq.model}, clientThinking=${clientRequestedThinking}, thinkingType=${body.thinking?.type}, configThinking=${thinkingConfig?.enabled ?? 'unset'}`);
 
         if (body.stream) {
             await handleStream(res, cursorReq, body, log, clientRequestedThinking);

@@ -186,8 +186,9 @@ function convertToAnthropicRequest(body: OpenAIChatRequest): AnthropicRequest {
         stop_sequences: body.stop
             ? (Array.isArray(body.stop) ? body.stop : [body.stop])
             : undefined,
-        // ★ Thinking 默认启用：确保 Claude Code 等 OpenAI 格式客户端也能获得 thinking 内容
-        thinking: { type: 'enabled' as const },
+        // ★ Thinking 开关：config.yaml 优先级最高
+        // 当配置未禁用时，默认启用 thinking 确保 Claude Code 等 OpenAI 格式客户端也能获得 thinking 内容
+        ...((!getConfig().thinking || getConfig().thinking!.enabled) ? { thinking: { type: 'enabled' as const } } : {}),
     };
 }
 

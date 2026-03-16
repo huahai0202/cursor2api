@@ -55,6 +55,12 @@ export function getConfig(): AppConfig {
                     earlyMsgMaxChars: typeof c.early_msg_max_chars === 'number' ? c.early_msg_max_chars : 2000,
                 };
             }
+            // ★ Thinking 开关（最高优先级）
+            if (yaml.thinking !== undefined) {
+                config.thinking = {
+                    enabled: yaml.thinking.enabled !== false, // 默认启用
+                };
+            }
         } catch (e) {
             console.warn('[Config] 读取 config.yaml 失败:', e);
         }
@@ -77,6 +83,12 @@ export function getConfig(): AppConfig {
         if (!config.compression) config.compression = { enabled: true, level: 2, keepRecent: 6, earlyMsgMaxChars: 2000 };
         const lvl = parseInt(process.env.COMPRESSION_LEVEL);
         if (lvl >= 1 && lvl <= 3) config.compression.level = lvl as 1 | 2 | 3;
+    }
+    // Thinking 环境变量覆盖（最高优先级）
+    if (process.env.THINKING_ENABLED !== undefined) {
+        config.thinking = {
+            enabled: process.env.THINKING_ENABLED !== 'false' && process.env.THINKING_ENABLED !== '0',
+        };
     }
 
     // 从 base64 FP 环境变量解析指纹

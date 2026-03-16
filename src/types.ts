@@ -120,6 +120,9 @@ export interface AppConfig {
         keepRecent: number;        // 保留最近 N 条消息不压缩
         earlyMsgMaxChars: number;  // 早期消息最大字符数
     };
+    thinking?: {
+        enabled: boolean;          // 是否启用 thinking（最高优先级，覆盖客户端请求）
+    };
     fingerprint: {
         userAgent: string;
     };
